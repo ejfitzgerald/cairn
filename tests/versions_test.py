@@ -12,6 +12,15 @@ from cairn.versions import next_version
     ('v0.0.1-3-gef14a4a', 'iota', 'v0.0.2-alpha1'),
     ('v0.1.0-42-g008b8c7b', 'iota', 'v0.1.1-alpha1'),
 
+    ("v0.0.3beta9-1-ga4578d1", 'minor-iota', 'v0.1.0-alpha1'),
+    ('v0.0.3beta9-1-ga4578d1-wip', 'minor-iota', 'v0.1.0-alpha1'),
+    ('v0.0.3-beta9-1-ga4578d1-dirty', 'minor-iota', 'v0.1.0-alpha1'),
+    ('v10.12.13', 'minor-iota', 'v10.13.0-alpha1'),
+    ('v1.2.3alpha1', 'minor-iota', 'v1.3.0-alpha1'),
+    ('v1.2.3rc2-1-gabcdef1', 'minor-iota', 'v1.3.0-alpha1'),
+    ('v0.0.1-3-gef14a4a', 'minor-iota', 'v0.1.0-alpha1'),
+    ('v0.1.0-42-g008b8c7b', 'minor-iota', 'v0.2.0-alpha1'),
+
     ("v0.0.3beta9-1-ga4578d1", 'pre', 'v0.0.3-rc1'),
     ('v0.0.3beta9-1-ga4578d1-wip', 'pre', 'v0.0.3-rc1'),
     ('v0.0.3-beta9-1-ga4578d1-dirty', 'pre', 'v0.0.3-rc1'),
