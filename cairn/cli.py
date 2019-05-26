@@ -10,6 +10,12 @@ def _mode(text):
     return text
 
 
+def _name(text):
+    if ' ' in text:
+        raise RuntimeError('Name must not have spaces in it')
+    return text
+
+
 def current_version():
     cmd = [
         'git', 'describe', '--always'
@@ -37,16 +43,25 @@ def parse_commandline():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
 
+    # common args
+    parser.add_argument('-n', '--dry-run', action='store_true',
+                        help='Do not perform tagging simply print new tag')
+
+    # update parser
     parser_update = subparsers.add_parser('update', aliases=('up',))
     parser_update.add_argument('mode', type=_mode, default='patch', nargs='?', help='The type of version increment')
-    parser_update.add_argument('-n', '--dry-run', action='store_true',
-                               help='Do not perform tagging simply print new tag')
     parser_update.set_defaults(handler=run_update)
+
+    # create parser
+    parser_create = subparsers.add_parser('create', aliases=('new',))
+    parser_create.add_argument('name', type=_name, default='v0.0.1', nargs='?', help='The name of the new tag')
+    parser_create.set_defaults(handler=run_create)
 
     return parser, parser.parse_args()
 
 
 def run_update(args):
+
     # extract the current version of the project
     curr_ver = current_version()
 
@@ -57,6 +72,12 @@ def run_update(args):
         print('Unable to generate a new ')
 
     create_tag(next_ver, args.dry_run)
+
+    return True
+
+
+def run_create(args):
+    create_tag(args.name, args.dry_run)
 
     return True
 
