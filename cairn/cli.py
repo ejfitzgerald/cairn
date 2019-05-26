@@ -18,6 +18,21 @@ def current_version():
     return output
 
 
+def create_tag(name, dry_run):
+    # create the git tag
+    if not dry_run:
+        cmd = [
+            'git',
+            'tag',
+            '-a', name,
+            '-m', name,
+        ]
+        subprocess.check_call(cmd)
+
+    else:
+        print('Next Version:', name)
+
+
 def parse_commandline():
     parser = argparse.ArgumentParser()
     parser.add_argument('mode', type=_mode, default='patch', nargs='?', help='The type of version increment')
@@ -35,18 +50,7 @@ def run(args):
     if next_ver is None:
         print('Unable to generate a new ')
 
-    # create the git tag
-    if not args.dry_run:
-        cmd = [
-            'git',
-            'tag',
-            '-a', next_ver,
-            '-m', next_ver,
-        ]
-        subprocess.check_call(cmd)
-
-    else:
-        print('Next Version:', next_ver)
+    create_tag(next_ver, args.dry_run)
 
     return True
 
