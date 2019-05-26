@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='cairn',
-    version='0.1.0',
+    version='0.2.0',
     description='Tools and utilities for managing project versions',
     url='https://github.com/ejfitzgerald/cairn/',
     author='Ed FitzGerald',
