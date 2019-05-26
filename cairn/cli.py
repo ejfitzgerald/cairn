@@ -35,12 +35,18 @@ def create_tag(name, dry_run):
 
 def parse_commandline():
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', type=_mode, default='patch', nargs='?', help='The type of version increment')
-    parser.add_argument('-n', '--dry-run', action='store_true', help='Do not perform tagging simply print new tag')
-    return parser.parse_args()
+    subparsers = parser.add_subparsers()
+
+    parser_update = subparsers.add_parser('update', aliases=('up',))
+    parser_update.add_argument('mode', type=_mode, default='patch', nargs='?', help='The type of version increment')
+    parser_update.add_argument('-n', '--dry-run', action='store_true',
+                               help='Do not perform tagging simply print new tag')
+    parser_update.set_defaults(handler=run_update)
+
+    return parser, parser.parse_args()
 
 
-def run(args):
+def run_update(args):
     # extract the current version of the project
     curr_ver = current_version()
 
@@ -56,12 +62,15 @@ def run(args):
 
 
 def main():
-    args = parse_commandline()
+    parser, args = parse_commandline()
+
+    if not hasattr(args, 'handler'):
+        parser.print_usage()
+        sys.exit(1)
 
     success = False
-
     try:
-        success = run(args)
+        success = args.handler(args)
     except VersionMatchError as ex:
         print('Current version: {} can not be matched. Sorry!'.format(ex.version))
 
