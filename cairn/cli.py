@@ -1,6 +1,7 @@
 import argparse
 import subprocess
 import sys
+import re
 
 from cairn.versions import next_version, validate_mode, VersionMatchError
 
@@ -39,6 +40,20 @@ def create_tag(name, dry_run):
         print('Next Version:', name)
 
 
+def current_branch():
+    cmd = ['git', 'branch']
+    output = subprocess.check_output(cmd).decode()
+
+    branch_name = None
+    for line in output.splitlines():
+        items = tuple(filter(lambda x: len(x), line.split(' ')))
+        if len(items) == 2 and items[0] == '*':
+            branch_name = items[1]
+            break
+    assert branch_name is not None
+    return branch_name
+
+
 def parse_commandline():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
@@ -57,11 +72,14 @@ def parse_commandline():
     parser_create.add_argument('name', type=_name, default='v0.0.1', nargs='?', help='The name of the new tag')
     parser_create.set_defaults(handler=run_create)
 
+    # release parser
+    parser_release = subparsers.add_parser('release')
+    parser_release.set_defaults(handler=run_release)
+
     return parser, parser.parse_args()
 
 
 def run_update(args):
-
     # extract the current version of the project
     curr_ver = current_version()
 
@@ -78,6 +96,50 @@ def run_update(args):
 
 def run_create(args):
     create_tag(args.name, args.dry_run)
+
+    return True
+
+
+def run_release(args):
+    release_point_sha = subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode().strip()
+
+    active_branch = current_branch()
+    current = current_version()
+    release_version = next_version(current, 'patch')
+    following_version = next_version(release_version, 'minor-iota')
+    release_branch = 'release/' + release_version[:-1] + 'x'
+
+    print('--------------------------------------------------------------------------')
+    print('    Active Branch:', active_branch)
+    print('   Release Branch:', release_branch)
+    print('  Current Version:', current)
+    print('  Release Version:', release_version)
+    print('Following Version:', following_version)
+    print('    Release Point:', release_point_sha)
+    print('--------------------------------------------------------------------------')
+    print()
+
+    # create the new branch
+    cmd = ['git', 'checkout', '-b', release_branch]
+    subprocess.check_call(cmd)
+
+    # create the empty commit
+    cmd = ['git', 'commit', '--allow-empty', '-m', 'Create initial release ({})'.format(release_version)]
+    subprocess.check_call(cmd)
+
+    # tag the release version
+    create_tag(release_version, args.dry_run)
+
+    # checkout the active branch again
+    cmd = ['git', 'checkout', active_branch]
+    subprocess.check_call(cmd)
+
+    # create the empty commit
+    cmd = ['git', 'commit', '--allow-empty', '-m', 'Update to next version ({})'.format(following_version)]
+    subprocess.check_call(cmd)
+
+    # tag the release version
+    create_tag(following_version, args.dry_run)
 
     return True
 
