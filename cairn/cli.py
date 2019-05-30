@@ -65,6 +65,7 @@ def parse_commandline():
     # update parser
     parser_update = subparsers.add_parser('update', aliases=('up',))
     parser_update.add_argument('mode', type=_mode, default='patch', nargs='?', help='The type of version increment')
+    parser_update.add_argument('-E', '--empty-commit', action='store_true', help='Create tag on new empty commit')
     parser_update.set_defaults(handler=run_update)
 
     # create parser
@@ -74,6 +75,7 @@ def parse_commandline():
 
     # release parser
     parser_release = subparsers.add_parser('release')
+    parser_release.add_argument('-f', '--final', action='store_true', help='Mark this as the final re')
     parser_release.set_defaults(handler=run_release)
 
     return parser, parser.parse_args()
@@ -86,8 +88,16 @@ def run_update(args):
     # generate the next version of the project
     next_ver = next_version(curr_ver, args.mode)
 
+    if args.dry_run:
+        print('Next version: {}'.format(next_ver))
+        return False
+
     if next_ver is None:
         print('Unable to generate a new ')
+
+    if args.empty_commit:
+        cmd = ['git', 'commit', '--allow-empty', '-m', 'Update version to {}'.format(next_ver)]
+        subprocess.check_call(cmd)
 
     create_tag(next_ver, args.dry_run)
 
@@ -106,8 +116,13 @@ def run_release(args):
     active_branch = current_branch()
     current = current_version()
     release_version = next_version(current, 'patch')
-    following_version = next_version(release_version, 'minor-iota')
     release_branch = 'release/' + release_version[:-1] + 'x'
+    following_version = next_version(release_version, 'minor-iota')
+
+    description = 'release'
+    if not args.final:
+        release_version += '-rc1'
+        description += ' candidate'
 
     print('--------------------------------------------------------------------------')
     print('    Active Branch:', active_branch)
@@ -119,12 +134,15 @@ def run_release(args):
     print('--------------------------------------------------------------------------')
     print()
 
+    if args.dry_run:
+        return False
+
     # create the new branch
     cmd = ['git', 'checkout', '-b', release_branch]
     subprocess.check_call(cmd)
 
     # create the empty commit
-    cmd = ['git', 'commit', '--allow-empty', '-m', 'Create initial release ({})'.format(release_version)]
+    cmd = ['git', 'commit', '--allow-empty', '-m', 'Create initial {} ({})'.format(description, release_version)]
     subprocess.check_call(cmd)
 
     # tag the release version
@@ -135,7 +153,7 @@ def run_release(args):
     subprocess.check_call(cmd)
 
     # create the empty commit
-    cmd = ['git', 'commit', '--allow-empty', '-m', 'Update to next version ({})'.format(following_version)]
+    cmd = ['git', 'commit', '--allow-empty', '-m', 'Update version to {}'.format(following_version)]
     subprocess.check_call(cmd)
 
     # tag the release version

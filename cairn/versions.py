@@ -1,7 +1,7 @@
 import re
 
 VERSION_MATCHER = re.compile(r'^v(\d+)\.(\d+)\.(\d+)-?((alpha|beta|rc)(\d+))?(-\d+-g[a-f0-9]{7,8}(-(wip|dirty))?)?$')
-VALID_MODES = ('iota', 'pre', 'patch', 'minor', 'major', 'minor-iota')
+VALID_MODES = ('iota', 'pre', 'patch', 'minor', 'major', 'minor-iota', 'minor-rc', 'release')
 
 
 class VersionMatchError(RuntimeError):
@@ -56,11 +56,11 @@ def next_version(version, mode):
         patch = 0
         pre = 'rel'
         pre_version = 0
-    elif mode in ('minor', 'minor-iota'):
+    elif mode in ('minor', 'minor-iota', 'minor-rc'):
         minor += 1
         patch = 0
-        if 'minor-iota' == mode:
-            pre = 'alpha'
+        if mode in ('minor-iota', 'minor-rc'):
+            pre = 'rc' if mode == 'minor-rc' else 'alpha'
             pre_version = 1
         else:
             pre = 'rel'
@@ -88,6 +88,11 @@ def next_version(version, mode):
             patch += 1
         else:
             pre_version += 1
+    elif mode == 'release':
+        if pre != 'rc':
+            return None
+        else:
+            pre = 'rel'
 
     # finally based on the updated information generate the new version information
     next_ver = 'v{}.{}.{}'.format(major, minor, patch)
