@@ -1,6 +1,6 @@
 import re
 
-VERSION_MATCHER = re.compile(r'^v(\d+)\.(\d+)\.(\d+)-?((alpha|beta|rc)(\d+))?(-\d+-g[a-f0-9]{7,8}(-(wip|dirty))?)?$')
+VERSION_MATCHER = re.compile(r'^v(\d+)\.(\d+)\.(\d+)-?((alpha|beta|rc)(\d+))?(-\d+-g[a-f0-9]{7,9}(-(wip|dirty))?)?$')
 VALID_MODES = ('iota', 'pre', 'patch', 'minor', 'major', 'minor-iota', 'minor-rc', 'release')
 
 
