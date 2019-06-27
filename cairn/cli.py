@@ -71,6 +71,7 @@ def parse_commandline():
     # create parser
     parser_create = subparsers.add_parser('create', aliases=('new',))
     parser_create.add_argument('name', type=_name, default='v0.0.1', nargs='?', help='The name of the new tag')
+    parser_create.add_argument('-E', '--empty-commit', action='store_true', help='Create tag on new empty commit')
     parser_create.set_defaults(handler=run_create)
 
     # release parser
@@ -105,6 +106,11 @@ def run_update(args):
 
 
 def run_create(args):
+
+    if args.empty_commit:
+        cmd = ['git', 'commit', '--allow-empty', '-m', 'Update version to {}'.format(args.name)]
+        subprocess.check_call(cmd)
+
     create_tag(args.name, args.dry_run)
 
     return True
